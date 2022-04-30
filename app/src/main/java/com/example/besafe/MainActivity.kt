@@ -22,7 +22,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        getHashKey()
+        val keyHash = com.kakao.util.maps.helper.Utility.getKeyHash(this /* context */)
+        Log.d("Hash",keyHash)
+
+
+
+        //getHashKey()
 
         val btn1 = findViewById<Button>(R.id.btn1)
         val btn2 = findViewById<Button>(R.id.btn2)
@@ -41,21 +46,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     //카카오 해시키
-    @RequiresApi(Build.VERSION_CODES.P)
     private fun getHashKey() {
-        try{
-            val info = packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
-            val signatures = info.signingInfo.apkContentsSigners
-            val md = MessageDigest.getInstance("SHA")
-            for (signature in signatures) {
-                val md: MessageDigest
-                md = MessageDigest.getInstance("SHA")
+        var packageInfo: PackageInfo? = null
+        try {
+            packageInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
+        } catch (e: PackageManager.NameNotFoundException) {
+            e.printStackTrace()
+        }
+        if (packageInfo == null) Log.e("KeyHash", "KeyHash:null")
+        for (signature in packageInfo!!.signatures) {
+            try {
+                val md = MessageDigest.getInstance("SHA")
                 md.update(signature.toByteArray())
-                val key = String(Base64.encode(md.digest(), 0))
-                Log.d("Hash Key: ", "!@!@!key!@!@!")
+                Log.d("KeyHash", Base64.encodeToString(md.digest(), Base64.DEFAULT))
+            } catch (e: NoSuchAlgorithmException) {
+                Log.e("KeyHash", "Unable to get MessageDigest. signature=$signature", e)
             }
-        } catch(e: Exception){
-            Log.e("not fount", e.toString())
         }
     }
 
